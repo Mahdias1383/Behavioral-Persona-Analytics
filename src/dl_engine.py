@@ -15,14 +15,12 @@ class DeepLearningEngine:
     """
     Deep Learning Engine implementing the ANN architecture.
     
-    REPLICATION NOTE: 
-    This module explicitly replicates the data state of the reference study, 
-    including preserving One-Hot encoded target columns if present.
-    This is done to demonstrate how the reference 100% accuracy was achieved 
-    (likely via data leakage), for educational and reproduction purposes.
+    REPLICATION NOTE:
+    This module explicitly replicates the data state of the reference study (including leakage)
+    to demonstrate how the 100% accuracy was theoretically achieved.
     """
     def __init__(self, models_dir: str = "models", base_report_dir: str = "reports"):
-        # Set seeds for reproducibility (Deterministic behavior)
+        # Deterministic Seeds
         tf.random.set_seed(42)
         np.random.seed(42)
         
@@ -53,23 +51,22 @@ class DeepLearningEngine:
         else:
              y = df[y_col]
         
-        # 2. Define Features (Replication Logic)
-        # We verify if leakage columns exist to confirm reproduction state
+        # 2. Define Features (Replication Strategy)
+        # Identify leakage columns (One-Hot Targets)
         leakage_cols = [c for c in df.columns if c.startswith(f"{target_col}_") and c != y_col]
         if leakage_cols:
             print(f"   ⚠️ Leakage Replication: Including target-derived columns: {leakage_cols}")
         
-        # Drop ONLY the numeric target label and original string target
+        # Drop ONLY the numeric target and original string target
+        # This keeps leakage columns if they exist, matching reference behavior.
         cols_to_drop = [y_col, target_col]
         existing_drop = [c for c in cols_to_drop if c in df.columns]
         X = df.drop(columns=existing_drop, axis=1)
         
         # Ensure numeric consistency
         X = X.apply(pd.to_numeric, errors='coerce').fillna(0)
-        
-        print(f"   ℹ️ ANN Features ({len(X.columns)})")
-        
-        # 3. Scale (StandardScaler)
+            
+        # 3. Scale
         print("   ℹ️ Scaling...")
         X_scaled = self.scaler.fit_transform(X)
         
