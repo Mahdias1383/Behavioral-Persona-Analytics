@@ -1,0 +1,51 @@
+{
+    "Logistic Regression": {
+        "Accuracy": "0.9253",
+        "Precision": "0.9255",
+        "Recall": "0.9253",
+        "F1 Score": "0.9253",
+        "AUC": "0.9223"
+    },
+    "SVM": {
+        "Accuracy": "0.9259",
+        "Precision": "0.9269",
+        "Recall": "0.9259",
+        "F1 Score": "0.9259",
+        "AUC": "0.9515"
+    },
+    "Decision Tree": {
+        "Accuracy": "0.8690",
+        "Precision": "0.8697",
+        "Recall": "0.8690",
+        "F1 Score": "0.8691",
+        "AUC": "0.8761"
+    },
+    "Random Forest": {
+        "Accuracy": "0.9115",
+        "Precision": "0.9116",
+        "Recall": "0.9115",
+        "F1 Score": "0.9115",
+        "AUC": "0.9487"
+    },
+    "Naive Bayes": {
+        "Accuracy": "0.9264",
+        "Precision": "0.9267",
+        "Recall": "0.9264",
+        "F1 Score": "0.9265",
+        "AUC": "0.9041"
+    },
+    "XGBoost": {
+        "Accuracy": "0.9155",
+        "Precision": "0.9160",
+        "Recall": "0.9155",
+        "F1 Score": "0.9156",
+        "AUC": "0.9496"
+    },
+    "Artificial Neural Network (ANN)": {
+        "Accuracy": "1.0000",
+        "Precision": "1.0000",
+        "Recall": "1.0000",
+        "F1 Score": "1.0000",
+        "AUC": "N/A (Binary Output)"
+    }
+}

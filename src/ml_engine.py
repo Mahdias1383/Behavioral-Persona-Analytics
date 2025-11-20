@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from typing import Tuple
+from typing import List, Tuple, Dict
 from sklearn.model_selection import train_test_split, learning_curve
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.linear_model import LogisticRegression
@@ -14,12 +14,14 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import (accuracy_score, precision_score, recall_score, 
-                             f1_score, confusion_matrix, roc_curve, auc)
+                             f1_score, confusion_matrix, classification_report, 
+                             roc_curve, auc)
+from src.utils import save_metrics
 
 class MLEngine:
     """
     Manages training and evaluation of Classic ML models.
-    Implements Independent Pipelines (Local Scaling/Splitting) for each model.
+    Each model runs in an independent pipeline (Scaling -> Splitting -> Training).
     """
     def __init__(self, models_dir: str = "models", base_report_dir: str = "reports"):
         self.models_dir = models_dir
@@ -38,21 +40,20 @@ class MLEngine:
         """
         Prepares a local subset of data for a specific model.
         """
-        # 1. Target
+        # 1. Target definition
         y_col = f"{target_col}_num"
-        # Fallback if FeatureEng didn't create it (rare)
         if y_col not in df.columns:
+             # Fallback: simplistic encoding if missing
              y = df[target_col].astype('category').cat.codes
         else:
              y = df[y_col]
         
-        # 2. Features
-        # Exclude target and derived target columns to avoid leakage in classic models
+        # 2. Feature definition (Numeric Only)
+        # Exclude target and target-related columns to avoid leakage in classic models
         cols_to_drop = [y_col, target_col]
         cols_to_drop.extend([c for c in df.columns if c.startswith(f"{target_col}_")])
         
         X = df.drop(columns=[c for c in cols_to_drop if c in df.columns], axis=1)
-        # Ensure numeric
         X = X.select_dtypes(include=['number'])
         
         # 3. Scaling
@@ -67,7 +68,7 @@ class MLEngine:
 
     def run_all_classic_models(self, df: pd.DataFrame, target_col: str):
         """
-        Orchestrates the training of all classic models.
+        Orchestrates the training of all defined classic models.
         """
         print("\n🚀 Running Classic Models (Full Features, Metrics & ROC Curves)...")
         target_names = ['Extrovert', 'Introvert']
@@ -121,7 +122,17 @@ class MLEngine:
             roc_auc = auc(fpr, tpr)
             self._plot_roc_curve(fpr, tpr, roc_auc, name)
 
-        # Summary
+        # Save Metrics JSON
+        metrics_dict = {
+            "Accuracy": f"{acc:.4f}",
+            "Precision": f"{prec:.4f}",
+            "Recall": f"{rec:.4f}",
+            "F1 Score": f"{f1:.4f}",
+            "AUC": f"{roc_auc:.4f}"
+        }
+        save_metrics(name.replace('_', ' '), metrics_dict)
+
+        # Update Summary
         pretty_name = name.replace('_', ' ')
         self.metrics_summary['Model'].append(pretty_name)
         self.metrics_summary['Accuracy'].append(acc)
@@ -154,8 +165,8 @@ class MLEngine:
         fig.write_html(os.path.join(self.eval_dir, f"roc_curve_{name}.html"))
 
     def _plot_comparison(self):
-        df = pd.DataFrame(self.metrics_summary)
-        df_melted = df.melt(id_vars="Model", var_name="Metric", value_name="Score")
+        df_metrics = pd.DataFrame(self.metrics_summary)
+        df_melted = df_metrics.melt(id_vars="Model", var_name="Metric", value_name="Score")
         fig = px.bar(df_melted, x="Model", y="Score", color="Metric", barmode="group", title="Model Comparison")
         fig.update_yaxes(range=[0.8, 1.05])
         fig.write_html(os.path.join(self.eval_dir, "model_comparison_full.html"))

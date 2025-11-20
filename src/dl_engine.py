@@ -6,21 +6,24 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, precision_score, recall_score, f1_score
 import plotly.express as px 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from src.utils import save_metrics
 
 class DeepLearningEngine:
     """
     Deep Learning Engine implementing the ANN architecture.
     
-    REPLICATION NOTE:
-    This module explicitly replicates the data state of the reference study (including leakage)
-    to demonstrate how the 100% accuracy was theoretically achieved.
+    REPLICATION NOTE: 
+    This module explicitly replicates the data state of the reference study, 
+    including preserving One-Hot encoded target columns if present.
+    This is done to demonstrate how the reference 100% accuracy was achieved 
+    (likely via data leakage), for educational and reproduction purposes.
     """
     def __init__(self, models_dir: str = "models", base_report_dir: str = "reports"):
-        # Deterministic Seeds
+        # Set seeds for reproducibility (Deterministic behavior)
         tf.random.set_seed(42)
         np.random.seed(42)
         
@@ -52,12 +55,12 @@ class DeepLearningEngine:
              y = df[y_col]
         
         # 2. Define Features (Replication Strategy)
-        # Identify leakage columns (One-Hot Targets)
+        # We verify if leakage columns exist to confirm reproduction state
         leakage_cols = [c for c in df.columns if c.startswith(f"{target_col}_") and c != y_col]
         if leakage_cols:
             print(f"   ⚠️ Leakage Replication: Including target-derived columns: {leakage_cols}")
         
-        # Drop ONLY the numeric target and original string target
+        # Drop ONLY the numeric target label and original string target
         # This keeps leakage columns if they exist, matching reference behavior.
         cols_to_drop = [y_col, target_col]
         existing_drop = [c for c in cols_to_drop if c in df.columns]
@@ -65,8 +68,10 @@ class DeepLearningEngine:
         
         # Ensure numeric consistency
         X = X.apply(pd.to_numeric, errors='coerce').fillna(0)
-            
-        # 3. Scale
+        
+        print(f"   ℹ️ ANN Features ({len(X.columns)})")
+        
+        # 3. Scale (StandardScaler)
         print("   ℹ️ Scaling...")
         X_scaled = self.scaler.fit_transform(X)
         
@@ -95,13 +100,30 @@ class DeepLearningEngine:
         fig.add_trace(go.Scatter(x=hist['epoch'], y=hist['accuracy'], name='Train Acc'), row=1, col=1)
         fig.add_trace(go.Scatter(x=hist['epoch'], y=hist['val_accuracy'], name='Val Acc'), row=1, col=1)
         fig.add_trace(go.Scatter(x=hist['epoch'], y=hist['loss'], name='Train Loss'), row=1, col=2)
+        fig.add_trace(go.Scatter(x=hist['epoch'], y=hist['val_loss'], name='Val Loss'), row=1, col=2)
         fig.update_layout(title_text="ANN Training History", height=500)
         fig.write_html(os.path.join(self.eval_dir, "ann_history_interactive.html"))
 
     def evaluate(self, X_test, y_test):
         y_pred = (self.model.predict(X_test) > 0.5).astype("int32").flatten()
+        
+        # Calculate Metrics
         acc = accuracy_score(y_test, y_pred)
-        print(f"🔹 ANN Accuracy: {acc}")
+        prec = precision_score(y_test, y_pred, average='weighted')
+        rec = recall_score(y_test, y_pred, average='weighted')
+        f1 = f1_score(y_test, y_pred, average='weighted')
+        
+        # Save Metrics JSON
+        metrics_dict = {
+            "Accuracy": f"{acc:.4f}",
+            "Precision": f"{prec:.4f}",
+            "Recall": f"{rec:.4f}",
+            "F1 Score": f"{f1:.4f}",
+            "AUC": "N/A (Binary Output)"
+        }
+        save_metrics("Artificial Neural Network (ANN)", metrics_dict)
+        
+        print(f"🔹 ANN Accuracy: {acc:.4f}")
         print(classification_report(y_test, y_pred))
         
         cm = confusion_matrix(y_test, y_pred)

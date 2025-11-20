@@ -63,7 +63,7 @@ class FeatureEngineer:
             self.df['Post_frequency'] / (self.df['Going_outside'] + 1.0)
         )
 
-        # Final NaN cleanup for derived columns
+        # Final cleanup of any NaNs created during derivation
         derived_cols = ['Social_Interaction_Score', 'Online_Offline_Ratio', 
                         'Stage_fear_num', 'Drained_after_socializing_num']
         for col in derived_cols:

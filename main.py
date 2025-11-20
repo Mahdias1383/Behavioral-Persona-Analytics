@@ -2,6 +2,7 @@ import sys
 import os
 import traceback
 
+# Add src to path to ensure module resolution
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from src.data_loader import DataLoader
@@ -11,13 +12,14 @@ from src.eda import EDAReport
 from src.ml_engine import MLEngine
 from src.dl_engine import DeepLearningEngine
 
+# Constants
 DATA_PATH = 'data/personality_dataset.csv'
 TARGET_COLUMN = 'Personality'
 
 def main():
     print("🚀 Starting Behavioral Persona Analytics Pipeline (Production Mode)...\n")
     
-    # 1. Load Data
+    # --- 1. Data Loading ---
     if not os.path.exists(DATA_PATH):
         print(f"❌ Critical Error: Dataset not found at {DATA_PATH}")
         return
@@ -29,8 +31,8 @@ def main():
         print(f"❌ Loading Failed: {e}")
         return
 
-    # 2. Initial EDA
-    print("\n--- Step 2: Initial Exploratory Data Analysis ---")
+    # --- 2. Exploratory Data Analysis (Initial) ---
+    print("\n--- Step 2: Initial EDA ---")
     try:
         eda = EDAReport(df)
         eda.generate_inspection_report()
@@ -42,7 +44,7 @@ def main():
         print(f"⚠️ EDA Warning: {e}")
         traceback.print_exc()
 
-    # 3. Feature Engineering
+    # --- 3. Feature Engineering ---
     print("\n--- Step 3: Feature Engineering ---")
     try:
         fe = FeatureEngineer(df)
@@ -51,12 +53,14 @@ def main():
         print(f"❌ Feature Engineering Error: {e}")
         return
 
-    # 4. Preprocessing (Base One-Hot)
+    # --- 4. Preprocessing (Base) ---
     print("\n--- Step 4: Base Preprocessing ---")
+    # We use a generic preprocessor here to prepare the dataframe structure (One-Hot).
+    # Actual Scaling/Splitting is handled by model engines to ensure experiment isolation.
     preprocessor = DataPreprocessor(df, target_column=TARGET_COLUMN)
     df_full = preprocessor.prepare_base_dataframe()
 
-    # 5. Classic ML Models (Independent Pipelines)
+    # --- 5. Classic ML Modeling ---
     print("\n--- Step 5: Classic ML Models ---")
     try:
         ml_engine = MLEngine()
@@ -65,7 +69,7 @@ def main():
         print(f"❌ ML Engine Error: {e}")
         traceback.print_exc()
 
-    # 6. Deep Learning (Replicated Pipeline)
+    # --- 6. Deep Learning (ANN) ---
     print("\n--- Step 6: Deep Learning (ANN) ---")
     try:
         dl_engine = DeepLearningEngine()
