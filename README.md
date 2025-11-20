@@ -1,4 +1,3 @@
-````md
 🧠 Behavioral Persona Analytics: Achieving 100% Accuracy
 
 📖 Overview
@@ -136,5 +135,4 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-Developed with ❤️ by Mahdi As
-````
+Developed with ❤️ by Mahdi Asadi
