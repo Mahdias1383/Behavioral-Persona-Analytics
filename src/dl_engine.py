@@ -62,7 +62,6 @@ class DeepLearningEngine:
         target_one_hots = [c for c in df.columns if c.startswith(f"{target_col}_") and c != f"{target_col}_num"]
         if target_one_hots:
             print(f"   ⚠️ Potential Target Leakage Detected! Features include: {target_one_hots}")
-            print("      Proceeding to include them to match reference 100% accuracy.")
         
         # Drop ONLY Personality_num (and the original string column if present)
         cols_to_drop = [f"{target_col}_num", target_col]

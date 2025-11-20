@@ -17,7 +17,7 @@ DATA_PATH = 'data/personality_dataset.csv'
 TARGET_COLUMN = 'Personality'
 
 def main():
-    print("🚀 Starting Final Project Pipeline (Target: 100% Accuracy)...")
+    print("🚀 Starting Final Project Pipeline ...")
     
     # 1. Load
     loader = DataLoader(DATA_PATH)
@@ -26,8 +26,22 @@ def main():
     except Exception:
         return
 
-    # 2. Feature Engineering
-    print("\n--- Step 2: Feature Engineering ---")
+    # 2. Initial EDA
+    print("\n--- Step 2: Initial Exploratory Data Analysis ---")
+    try:
+        eda = EDAReport(df)
+        # FIX: Explicitly calling the generation methods!
+        eda.generate_inspection_report()
+        eda.plot_anomalies_boxplot()
+        eda.plot_categorical_anomalies()
+        eda.plot_correlation_matrix(title_suffix=" (Before Feature Eng)")
+        print("   ✅ Initial EDA reports generated.")
+    except Exception as e:
+        print(f"⚠️ EDA Warning: {e}")
+        traceback.print_exc()
+
+    # 3. Feature Engineering
+    print("\n--- Step 3: Feature Engineering ---")
     try:
         fe = FeatureEngineer(df)
         df = fe.apply_engineering()
@@ -36,42 +50,43 @@ def main():
         traceback.print_exc()
         return
 
-    # 3. Preprocessing (Global)
-    print("\n--- Step 3: Preprocessing ---")
+    # 4. Secondary EDA (After Feature Eng)
+    print("\n--- Step 4: Secondary EDA ---")
+    try:
+        # Re-initialize with new df to plot new features
+        eda = EDAReport(df)
+        eda.plot_correlation_matrix(title_suffix=" (With Derived Features)")
+        print("   ✅ Secondary EDA reports generated.")
+    except Exception as e:
+        print(f"⚠️ Secondary EDA Warning: {e}")
+
+    # 5. Preprocessing
+    print("\n--- Step 5: Preprocessing ---")
     preprocessor = DataPreprocessor(df, target_column=TARGET_COLUMN)
     
-    # This runs encoding/scaling and returns X/y for classic models (Clean X)
-    # Note: X_train/y_train here are from the global split, but ML/DL engines 
-    # might do their own local splits/scaling if configured to do so.
-    # In our latest strategy, ml_engine does local prep.
+    # Global Split for Classic Models
     X_train, X_test, y_train, y_test = preprocessor.process_and_split()
     
-    # Get the FULL dataframe (with potential leakage cols) for independent pipelines
+    # Full DF for Independent Pipelines
     df_full = preprocessor.prepare_base_dataframe()
     
     target_names = ['Extrovert', 'Introvert']
 
-    # 4. Classic ML Models
-    print("\n--- Step 4: Classic ML Models ---")
+    # 6. Classic ML Models
+    print("\n--- Step 6: Classic ML Models ---")
     ml_engine = MLEngine()
-    
-    # FIX: Call the correct method name 'run_all_classic_models'
-    # We pass df_full and target_column because the engine handles prep internally now.
     ml_engine.run_all_classic_models(df_full, TARGET_COLUMN)
 
-    # 5. Deep Learning (ANN - Exact Replication)
-    print("\n--- Step 5: Deep Learning (ANN) ---")
+    # 7. Deep Learning (ANN)
+    print("\n--- Step 7: Deep Learning (ANN) ---")
     try:
-        # Input dim will be determined dynamically inside
         dl_engine = DeepLearningEngine() 
-        
-        # Pass the FULL dataframe (df_full) which matches the csv analysis
         dl_engine.execute_ann_pipeline(df_full, TARGET_COLUMN)
     except Exception as e:
         print(f"❌ ANN Error: {e}")
         traceback.print_exc()
 
-    print("\n✨ Pipeline Execution Finished! Check 'reports/evaluation' for results.")
+    print("\n✨ Pipeline Execution Finished! Check 'reports/' for all outputs.")
 
 if __name__ == "__main__":
     main()
