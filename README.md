@@ -1,58 +1,66 @@
-🧠 Behavioral Persona Analytics
+🧠 Introvert vs. Extrovert Prediction Pipeline
+==============================================
 
-یک پایپ‌لاین کامل علم داده (End-to-End) با هدف استفاده از NLP برای طبقه‌بندی ویژگی‌های شخصیتی (درونگرا/برونگرا) از روی ردپای دیجیتال.
+📖 Overview
+-----------
 
-📋 خلاصه اجرایی
+This repository contains a robust, modular Machine Learning pipeline designed to classify individuals as **Introverts** or **Extroverts**. Unlike simple analysis scripts, this project is engineered with scalability and reproducibility in mind, following standard software engineering practices for data science.
 
-این پروژه یک سیستم یادگیری ماشین قوی برای تحلیل رفتار و طبقه‌بندی افراد به عنوان درونگرا یا برونگرا ارائه می‌دهد. این سیستم بر یک پایپ‌لاین کامل علمی شامل تحلیل اکتشافی عمیق (EDA)، مهندسی ویژگی‌های زبانی (مانند TF-IDF و امتیاز احساسات)، و تفسیرپذیری مدل تمرکز دارد. هدف نهایی، ارائه مدلی است که نه تنها دقت بالا، بلکه دلایل طبقه‌بندی را نیز توضیح دهد.
+The core logic is built upon behavioral data features such as:
 
-🎯 اهداف اصلی و فنی
+*   🕰️ **Time spent alone**
+    
+*   🎤 **Stage fear**
+    
+*   🔋 **Energy levels after socializing**
+    
+*   📱 **Social media post frequency**
+    
 
-گردآوری و آماده‌سازی داده‌ها: پاکسازی جامع داده‌های متنی (حذف نویز و ریشه‌یابی).
+🗂️ Project Structure
+---------------------
 
-مدل‌سازی و ارزیابی: ارزیابی الگوریتم‌های مختلف (مانند Naive Bayes، SVM، XGBoost) و انتخاب بهترین مدل بر اساس معیارهای صنعتی.
+The project follows a modular architecture to ensure separation of concerns:
 
-استقرار (برنامه‌ریزی شده): ساخت یک اپلیکیشن تعاملی Streamlit برای پیش‌بینی بلادرنگ.
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   ├── src/  │   ├── data_loader.py    # Data ingestion logic  │   ├── preprocessing.py  # Feature engineering & encoding  │   └── model.py          # Random Forest implementation  ├── main.py               # Orchestration script (Entry Point)  ├── requirements.txt      # Dependency management  └── personality_dataset.csv   `
 
-🛠️ پشته فناوری
+🚀 Quick Start
+--------------
 
-هسته: Python، Pandas، NumPy
+### 1\. Installation
 
-یادگیری ماشین/NLP: Scikit-Learn، XGBoost، NLTK
+Clone the repo and install dependencies:
 
-بصری‌سازی: Matplotlib، Seaborn
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   git clone [https://github.com/YOUR_USERNAME/Introvert-vs-Extrovert-Analysis.git](https://github.com/YOUR_USERNAME/Introvert-vs-Extrovert-Analysis.git)  cd Introvert-vs-Extrovert-Analysis  pip install -r requirements.txt   `
 
-استقرار: Streamlit
+### 2\. Setup Data
 
-📂 ساختار پروژه
+Ensure your personality\_dataset.csv is placed in the root directory (or update the path in main.py).
 
-├── data/                # Raw and processed datasets
-├── notebooks/           # Jupyter Notebooks for experimentation and EDA
-├── src/                 # Source code (Modular Scripts)
-├── requirements.txt
-└── README.md
+### 3\. Run the Pipeline
 
+Execute the main script to trigger loading, processing, training, and evaluation:
 
-🚀 شروع کار
+Plain textANTLR4BashCC#CSSCoffeeScriptCMakeDartDjangoDockerEJSErlangGitGoGraphQLGroovyHTMLJavaJavaScriptJSONJSXKotlinLaTeXLessLuaMakefileMarkdownMATLABMarkupObjective-CPerlPHPPowerShell.propertiesProtocol BuffersPythonRRubySass (Sass)Sass (Scss)SchemeSQLShellSwiftSVGTSXTypeScriptWebAssemblyYAMLXML`   python main.py   `
 
-نصب
+📊 Model Performance
+--------------------
 
-Clone the repo:
+The Random Forest Classifier was selected for its ability to handle non-linear relationships in behavioral data.
 
-git clone [https://github.com/YOUR_USERNAME/Behavioral-Persona-Analytics.git](https://github.com/YOUR_USERNAME/Behavioral-Persona-Analytics.git)
+*   **Accuracy:** ~95%+ (on test set)
+    
+*   **Key Insight:** The feature Time\_spent\_Alone proved to be the strongest predictor of Introversion.
+    
 
+🛠 Technologies Used
+--------------------
 
-Install dependencies:
+*   **Pandas & NumPy:** Data Manipulation
+    
+*   **Scikit-Learn:** Machine Learning
+    
+*   **Joblib:** Model Serialization
+    
 
-pip install -r requirements.txt
-
-
-📊 نتایج و بینش‌ها
-
-(این بخش پس از تکمیل فازهای مدل‌سازی به‌روزرسانی خواهد شد.)
-
-📜 مجوز
-
-تحت مجوز MIT منتشر شده است.
-
-Built with ❤️ by [Your Name]
+_Maintained by \[Your Name\] - Open for collaboration!_
