@@ -1,4 +1,4 @@
-# 🧠 Behavioral Persona Analytics: Achieving 100% Accuracy
+# 🧠 Behavioral Persona Analytics
 
 ## 📖 Overview
 
