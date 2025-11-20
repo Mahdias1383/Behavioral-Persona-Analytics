@@ -1,7 +1,6 @@
-````md
-🧠 Behavioral Persona Analytics: Achieving 100% Accuracy
+# 🧠 Behavioral Persona Analytics
 
-📖 Overview
+## 📖 Overview
 
 Welcome to the Behavioral Persona Analytics repository. This project represents a sophisticated, enterprise-grade implementation of a personality classification system (Introvert vs. Extrovert) based on behavioral patterns and social habits.
 
@@ -9,7 +8,7 @@ The core objective of this project was to reverse-engineer and replicate a refer
 
 This repository refactors that logic into a clean, modular, and maintainable software architecture suitable for production environments, while transparently documenting the "secret sauce" behind the perfect score.
 
-🚀 Key Features
+## 🚀 Key Features 
 
 - Modular Software Design: The codebase is organized into distinct modules (src/) for Data Loading, Feature Engineering, Preprocessing, EDA, and Modeling, moving away from monolithic Jupyter Notebooks.
 - Independent Model Pipelines: Implementation of a robust strategy where each model (Classic ML & ANN) manages its own data preparation lifecycle (Scaling, Splitting) to match specific experimental conditions found in the reference study.
@@ -17,7 +16,7 @@ This repository refactors that logic into a clean, modular, and maintainable sof
 - Interactive Visualizations: Generation of dynamic HTML reports (Confusion Matrices, Training History, ROC Curves) using Plotly for deep interactive analysis.
 - Deep Learning Mastery: A custom-built Artificial Neural Network (ANN) using TensorFlow/Keras that achieves 100% Accuracy, matching the state-of-the-art reference benchmarks.
 
-📊 Model Performance & Metrics
+## 📊 Model Performance & Metrics 
 
 Through rigorous tuning and an "Independent Pipeline" strategy, we achieved perfect or near-perfect scores across all models. The following metrics were calculated on the test set:
 
@@ -33,7 +32,7 @@ Through rigorous tuning and an "Independent Pipeline" strategy, we achieved perf
 
 > Note: The 100% accuracy in ANN was achieved by replicating the exact data flow of the reference study, which implicitly leverages specific feature interactions (and potentially informative One-Hot encoded target residues) that act as strong predictors.
 
-🔬 Technical Deep Dive: The Road to 100%
+## 🔬 Technical Deep Dive: The Road to 100%
 
 Achieving perfect accuracy is rare in real-world data science. Our investigation revealed three key factors that contributed to this result in the reference dataset:
 
@@ -58,7 +57,7 @@ The most critical finding was the presence of Target Leakage in the reference st
 
 **Replication:** To match the 100% benchmark exactly, our DeepLearningEngine strictly replicates this state by preserving these specific columns during training. This proves that the "perfect" score is a result of the model having access to the answer key, a crucial lesson in data validation.
 
-📈 Visual Analytics & Reports
+## 📈 Visual Analytics & Reports
 
 The project automatically generates insightful, interactive reports in the `reports/` directory.
 
@@ -75,7 +74,7 @@ The project automatically generates insightful, interactive reports in the `repo
 - **cm_[ModelName].html:** Interactive Confusion Matrices for every model, showing exact True/False Positives/Negatives.
 - **ann_history_interactive.html:** A dynamic plot of the Neural Network's training process (Loss & Accuracy over epochs), visualizing the convergence to 100%.
 
-🛠️ Project Structure
+## 🛠️ Project Structure
 
 ```
 Behavioral-Persona-Analytics/
@@ -97,7 +96,7 @@ Behavioral-Persona-Analytics/
 └── README.md                   # Documentation
 ```
 
-🚀 Installation & Usage
+## 🚀 Installation & Usage
 
 ### 1. Clone the Repository
 
@@ -128,13 +127,12 @@ python main.py
 
 Once finished, open the `reports/` folder to explore the generated interactive dashboards!
 
-🤝 Contributing
+## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
 
-📄 License
+## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-Developed with ❤️ by Mahdi As
-````
+Developed with ❤️ by Mahdi Asadi
