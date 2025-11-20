@@ -3,18 +3,13 @@ import numpy as np
 
 class FeatureEngineer:
     """
-    Handles specific feature engineering steps found in the reference notebook
-    PRIOR to One-Hot Encoding and Scaling.
-    Responsible for IMPUTATION and FEATURE CREATION only.
+    Handles specific feature engineering steps found in the reference notebook.
     """
     def __init__(self, df: pd.DataFrame):
         self.df = df.copy()
 
     def apply_engineering(self):
-        """
-        Replicates the exact cleaning and creation of _num columns.
-        """
-        print("   🛠️ Applying Feature Engineering (Imputation & Manual Encodings)...")
+        print("   🛠️ Applying Feature Engineering...")
         
         # 1. Impute Numerical Columns (Mean)
         num_cols = ['Time_spent_Alone', 'Social_event_attendance', 'Going_outside', 
@@ -28,9 +23,11 @@ class FeatureEngineer:
         for col in cat_cols:
             if col in self.df.columns:
                 self.df[col] = self.df[col].ffill()
-                # Fallback for first row if NaN
+                # Fallback
                 if self.df[col].isnull().any():
                     self.df[col] = self.df[col].fillna(method='bfill')
+                    if self.df[col].isnull().any():
+                        self.df[col] = self.df[col].fillna(self.df[col].mode()[0])
 
         # 3. Manual Mapping to create _num columns
         if 'Stage_fear' in self.df.columns:
@@ -40,24 +37,27 @@ class FeatureEngineer:
             self.df['Drained_after_socializing_num'] = self.df['Drained_after_socializing'].map({'Yes': 1, 'No': 0})
 
         # 4. Encode Target
+        # CRITICAL: We strictly map Extrovert->0, Introvert->1
         if 'Personality' in self.df.columns:
             self.df['Personality_num'] = self.df['Personality'].map({'Extrovert': 0, 'Introvert': 1})
 
-        # --- KEY ADDITION: Derived Features ---
-        # Feature A: Social Interaction Score
+        # --- Derived Features ---
         self.df['Social_Interaction_Score'] = (
             self.df['Social_event_attendance'] + 
             self.df['Friends_circle_size'] + 
             self.df['Post_frequency']
         )
 
-        # Feature B: Online vs Offline Ratio
         # Avoid division by zero
         self.df['Online_Offline_Ratio'] = (
             self.df['Post_frequency'] / (self.df['Going_outside'] + 1.0)
         )
 
-        # Fill any remaining NaNs
-        self.df = self.df.fillna(0)
+        # CRITICAL CHANGE: Do NOT fillna(0) blindly on everything!
+        # Only fill NaNs in the new derived numeric columns if they exist
+        new_cols = ['Social_Interaction_Score', 'Online_Offline_Ratio', 'Stage_fear_num', 'Drained_after_socializing_num']
+        for col in new_cols:
+            if col in self.df.columns:
+                self.df[col] = self.df[col].fillna(0)
 
         return self.df

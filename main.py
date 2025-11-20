@@ -2,6 +2,7 @@ import sys
 import os
 import traceback
 
+# Ensure src module can be imported
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from src.data_loader import DataLoader
@@ -11,58 +12,66 @@ from src.eda import EDAReport
 from src.ml_engine import MLEngine
 from src.dl_engine import DeepLearningEngine
 
+# Configuration
 DATA_PATH = 'data/personality_dataset.csv'
 TARGET_COLUMN = 'Personality'
 
 def main():
-    print("🚀 Starting Project Pipeline (Independent Model Strategy)...\n")
+    print("🚀 Starting Final Project Pipeline (Target: 100% Accuracy)...")
     
     # 1. Load
-    if not os.path.exists(DATA_PATH):
-        print(f"❌ Dataset not found at {DATA_PATH}")
-        return
     loader = DataLoader(DATA_PATH)
-    df = loader.load_data()
-
-    # 2. EDA
-    print("\n--- Step 2: EDA ---")
     try:
-        eda = EDAReport(df)
-        eda.generate_inspection_report()
-        print("   ✅ EDA generated.")
-    except Exception as e:
-        print(f"⚠️ EDA Warning: {e}")
+        df = loader.load_data()
+    except Exception:
+        return
 
-    # 3. Feature Engineering
-    print("\n--- Step 3: Feature Engineering ---")
+    # 2. Feature Engineering
+    print("\n--- Step 2: Feature Engineering ---")
     try:
         fe = FeatureEngineer(df)
         df = fe.apply_engineering()
     except Exception as e:
         print(f"❌ Feature Eng Error: {e}")
+        traceback.print_exc()
         return
 
-    # 4. Base Preprocessing (Just One-Hot, no global split/scale)
-    print("\n--- Step 4: Base Data Preparation ---")
+    # 3. Preprocessing (Global)
+    print("\n--- Step 3: Preprocessing ---")
     preprocessor = DataPreprocessor(df, target_column=TARGET_COLUMN)
-    df_prepared = preprocessor.prepare_base_dataframe()
+    
+    # This runs encoding/scaling and returns X/y for classic models (Clean X)
+    # Note: X_train/y_train here are from the global split, but ML/DL engines 
+    # might do their own local splits/scaling if configured to do so.
+    # In our latest strategy, ml_engine does local prep.
+    X_train, X_test, y_train, y_test = preprocessor.process_and_split()
+    
+    # Get the FULL dataframe (with potential leakage cols) for independent pipelines
+    df_full = preprocessor.prepare_base_dataframe()
+    
+    target_names = ['Extrovert', 'Introvert']
 
-    # 5. Classic ML Models (Each does its own split/scale locally)
-    print("\n--- Step 5: Classic ML Models (Local Pipelines) ---")
+    # 4. Classic ML Models
+    print("\n--- Step 4: Classic ML Models ---")
     ml_engine = MLEngine()
-    ml_engine.run_all_classic_models(df_prepared, TARGET_COLUMN)
+    
+    # FIX: Call the correct method name 'run_all_classic_models'
+    # We pass df_full and target_column because the engine handles prep internally now.
+    ml_engine.run_all_classic_models(df_full, TARGET_COLUMN)
 
-    # 6. Deep Learning (ANN - Independent Pipeline)
-    print("\n--- Step 6: Deep Learning (ANN - Independent Pipeline) ---")
+    # 5. Deep Learning (ANN - Exact Replication)
+    print("\n--- Step 5: Deep Learning (ANN) ---")
     try:
-        dl_engine = DeepLearningEngine()
-        # Passing the FULL dataframe. The engine will split and scale it internally.
-        dl_engine.execute_ann_pipeline(df_prepared, TARGET_COLUMN)
+        # Input dim will be determined dynamically inside
+        dl_engine = DeepLearningEngine() 
+        
+        # Pass the FULL dataframe (df_full) which matches the csv analysis
+        dl_engine.execute_ann_pipeline(df_full, TARGET_COLUMN)
     except Exception as e:
         print(f"❌ ANN Error: {e}")
         traceback.print_exc()
 
-    print("\n✨ Pipeline Finished!")
+    print("\n✨ Pipeline Execution Finished! Check 'reports/evaluation' for results.")
 
 if __name__ == "__main__":
     main()

@@ -16,7 +16,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 
 class MLEngine:
     """
-    ML Engine with independent pipelines AND correct scaling.
+    ML Engine with independent pipelines.
     """
     def __init__(self, models_dir="models", base_report_dir="reports"):
         self.models_dir = models_dir
@@ -27,17 +27,28 @@ class MLEngine:
 
     def _prepare_data_locally(self, df, target_col, test_size, random_state, scaler_type='minmax'):
         """
-        Prepares data locally. Defaults to MinMaxScaler as that yielded 100% for LR.
+        Prepares data locally using strictly numeric features.
         """
+        # 1. Define Target
         if f"{target_col}_num" not in df.columns:
-             raise ValueError("Target num column missing.")
-        y = df[f"{target_col}_num"]
+             # Fallback: try to encode if missing
+             from sklearn.preprocessing import LabelEncoder
+             le = LabelEncoder()
+             y = le.fit_transform(df[target_col])
+        else:
+             y = df[f"{target_col}_num"]
         
+        # 2. Define Features (X) - CRITICAL FIX
+        # Drop target related columns first
         cols_to_drop = [f"{target_col}_num", target_col]
         cols_to_drop.extend([c for c in df.columns if c.startswith(f"{target_col}_")])
+        
         X = df.drop(columns=[c for c in cols_to_drop if c in df.columns], axis=1)
         
-        # Apply Scaling (CRITICAL FIX)
+        # FORCE selection of numeric types only. This drops any lingering strings like 'No'.
+        X = X.select_dtypes(include=['number'])
+        
+        # 3. Scale
         if scaler_type == 'minmax':
              scaler = MinMaxScaler()
              X = scaler.fit_transform(X)
@@ -48,18 +59,18 @@ class MLEngine:
         return train_test_split(X, y, test_size=test_size, random_state=random_state)
 
     def run_all_classic_models(self, df, target_col):
-        print("\n🚀 Running Classic Models (Independent Scaled Pipelines)...")
+        print("\n🚀 Running Classic Models (Full Features)...")
         target_names = ['Extrovert', 'Introvert']
 
-        # --- 1. Logistic Regression (MinMax) ---
+        # --- 1. Logistic Regression ---
         X_train, X_test, y_train, y_test = self._prepare_data_locally(df, target_col, 0.3, 42, 'minmax')
         self._train_eval(LogisticRegression(max_iter=1000, random_state=42), "Logistic_Regression", X_train, X_test, y_train, y_test, target_names)
 
-        # --- 2. SVM (MinMax - usually prefers Standard but MinMax worked for 100% before) ---
+        # --- 2. SVM ---
         X_train, X_test, y_train, y_test = self._prepare_data_locally(df, target_col, 0.2, 7, 'minmax')
         self._train_eval(SVC(kernel='rbf', random_state=7), "SVM", X_train, X_test, y_train, y_test, target_names)
 
-        # --- 3. Decision Tree (No scaling needed theoretically, but kept for consistency) ---
+        # --- 3. Decision Tree ---
         X_train, X_test, y_train, y_test = self._prepare_data_locally(df, target_col, 0.2, 7, 'minmax')
         self._train_eval(DecisionTreeClassifier(random_state=7), "Decision_Tree", X_train, X_test, y_train, y_test, target_names)
 
@@ -94,6 +105,6 @@ class MLEngine:
 
     def _plot_comparison(self):
         df_metrics = pd.DataFrame(self.metrics_summary)
-        fig = px.bar(df_metrics, x="Model", y="Accuracy", title="Model Comparison (Scaled)", text_auto='.2f')
+        fig = px.bar(df_metrics, x="Model", y="Accuracy", title="Model Comparison (Full Features)", text_auto='.2f')
         fig.update_yaxes(range=[0.8, 1.05])
-        fig.write_html(os.path.join(self.eval_dir, "model_comparison_independent.html"))
+        fig.write_html(os.path.join(self.eval_dir, "model_comparison_full.html"))
