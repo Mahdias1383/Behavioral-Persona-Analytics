@@ -1,4 +1,4 @@
-🧠 **Behavioral Persona Analytics: Precision Psychometrics AI**
+# 🧠 **Behavioral Persona Analytics: Precision Psychometrics AI**
 
 ## 📖 Executive Overview
 
