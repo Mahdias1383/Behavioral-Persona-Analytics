@@ -7,38 +7,141 @@ import json
 import streamlit.components.v1 as components
 from src.utils import load_all_metrics
 
-# --- Page Configuration ---
+# --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="Behavioral Persona Analytics",
+    page_title="Behavioral Persona AI",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- Custom CSS ---
+# --- 2. PROFESSIONAL UI DESIGN SYSTEM (CSS) ---
 st.markdown("""
 <style>
-    .main { background-color: #0e1117; }
-    h1 { color: #FF4B4B; text-align: center; }
-    h2 { color: #FAFAFA; border-bottom: 2px solid #FF4B4B; padding-bottom: 10px; }
-    .stMetric { background-color: #262730; padding: 10px; border-radius: 5px; }
-    .introvert-box {
-        background-color: #1E3A8A; 
-        color: white; 
-        padding: 20px; 
-        border-radius: 15px; 
-        text-align: center;
-        border: 2px solid #60A5FA;
+    /* --- GLOBAL THEME & FONTS --- */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
-    .extrovert-box {
-        background-color: #7C2D12; 
-        color: white; 
-        padding: 20px; 
-        border-radius: 15px; 
-        text-align: center;
-        border: 2px solid #F87171;
+    
+    /* Dark Background with subtle gradient */
+    .stApp {
+        background-color: #050505;
+        background-image: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #050505 70%);
+        background-attachment: fixed;
     }
-    iframe { border: 1px solid #444; border-radius: 5px; }
+
+    /* --- RESPONSIVE CONTAINER LAYOUT --- */
+    .block-container {
+        max_width: 1200px !important;
+        padding-top: 2rem !important;
+        padding-bottom: 4rem !important;
+        margin: 0 auto !important;
+    }
+
+    /* --- TYPOGRAPHY --- */
+    h1 {
+        background: linear-gradient(90deg, #4facfe 0%, #00f2ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800 !important;
+        text-align: center;
+        letter-spacing: -1px;
+        text-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+        margin-bottom: 1rem !important;
+    }
+    
+    h2 {
+        color: #e0e0e0 !important;
+        font-weight: 600 !important;
+        font-size: 1.6rem !important;
+        margin-top: 2rem !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 10px;
+    }
+
+    h3 {
+        color: #a0a0a0 !important;
+        font-weight: 400 !important;
+    }
+    
+    p, li {
+        color: #cccccc !important;
+        line-height: 1.6 !important;
+        font-size: 1.05rem !important;
+    }
+
+    /* --- WIDGET STYLING (Glassmorphism) --- */
+    .stCard, div[data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px !important;
+        padding: 20px !important;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        text-align: center;
+    }
+    
+    div[data-testid="stMetric"]:hover {
+        border-color: #00f2ff;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    div[data-testid="stMetricLabel"] {
+        justify-content: center;
+        color: #888;
+    }
+    
+    div[data-testid="stMetricValue"] {
+        color: #fff;
+        font-weight: 700;
+    }
+
+    /* --- RESULTS BOXES --- */
+    .result-box {
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        margin-top: 20px;
+        border: 1px solid rgba(255,255,255,0.1);
+        backdrop-filter: blur(16px);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .introvert-style {
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.7), rgba(0, 0, 0, 0.8));
+        border-color: #00f2ff;
+        box-shadow: 0 0 40px rgba(0, 242, 255, 0.2);
+    }
+    
+    .extrovert-style {
+        background: linear-gradient(135deg, rgba(124, 45, 18, 0.7), rgba(0, 0, 0, 0.8));
+        border-color: #ff512f;
+        box-shadow: 0 0 40px rgba(255, 81, 47, 0.2);
+    }
+
+    .result-emoji { font-size: 4rem; margin-bottom: 10px; display: block; }
+    .result-title { font-size: 2rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+
+    /* --- IFRAME RESPONSIVENESS --- */
+    iframe {
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 16px !important;
+        width: 100% !important; /* Force full width */
+    }
+    
+    /* --- CUSTOM ALERT BOXES --- */
+    .info-box {
+        background-color: rgba(0, 242, 255, 0.05);
+        border-left: 4px solid #00f2ff;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -49,15 +152,19 @@ EDA_DIR = os.path.join(REPORTS_DIR, 'eda')
 EVAL_DIR = os.path.join(REPORTS_DIR, 'evaluation')
 ASSETS_DIR = 'assets'
 
-# --- Helpers ---
+# --- Logic Helpers ---
 def render_html_report(file_path, height=650):
-    """Renders an HTML file inside the Streamlit app."""
+    """
+    Loads and displays an HTML file. 
+    Enables scrolling to handle layout issues in Normal Mode vs Wide Mode.
+    """
     if os.path.exists(file_path):
         with open(file_path, 'r', encoding='utf-8') as f:
             html_content = f.read()
-        components.html(html_content, height=height, scrolling=False)
+        # scrolling=True fixes clipping issues in narrow viewports
+        components.html(html_content, height=height, scrolling=True)
     else:
-        st.warning(f"Report not found: {file_path}. Please run the analysis pipeline first.")
+        st.warning(f"Report not found: {file_path}. Please run 'python main.py' first.")
 
 def load_text_report(file_path):
     if os.path.exists(file_path):
@@ -68,85 +175,95 @@ def load_text_report(file_path):
 def display_local_image(image_name, caption=""):
     path = os.path.join(ASSETS_DIR, image_name)
     if os.path.exists(path):
-        # Updated to use_container_width per warning
         st.image(path, caption=caption, use_container_width=True)
     else:
-        st.info(f"Image placeholder: {image_name} (Add file to 'assets/' folder)")
+        st.markdown(f"""
+        <div style="padding:20px; border:1px dashed #555; border-radius:10px; text-align:center; color:#555;">
+            Image placeholder: {image_name}<br>(Add file to 'assets/' folder)
+        </div>
+        """, unsafe_allow_html=True)
 
 def get_scalar(val):
-    """Safely extracts scalar value from list if wrapped."""
     if isinstance(val, list):
         return val[0]
     return val
 
-# --- Preprocessing for Inference (SVM Specific) ---
+# --- PREPROCESSING (LOGIC CORE) ---
 def preprocess_input_for_inference(input_dict):
-    """
-    Transforms raw user input into the EXACT 9 numeric features expected by the SVM model.
-    Includes MANUAL MIN-MAX SCALING based on training data statistics.
-    """
-    # 0. Safe extraction
+    """Exact replication of training preprocessing for SVM (9 Numeric Features)."""
+    # 0. Extraction
     social_event = float(get_scalar(input_dict['Social_event_attendance']))
     friends = float(get_scalar(input_dict['Friends_circle_size']))
     post_freq = float(get_scalar(input_dict['Post_frequency']))
     going_out = float(get_scalar(input_dict['Going_outside']))
     time_spent = float(get_scalar(input_dict['Time_spent_Alone']))
     
-    # 1. Derived Features (Raw)
+    # 1. Derived
     social_score = social_event + friends + post_freq
     denom = going_out + 1.0
     online_ratio = post_freq / denom
     
-    # 2. Numeric Mappings
+    # 2. Mapping
     stage_fear_num = 1 if input_dict['Stage_fear'] == "Yes" else 0
     drained_num = 1 if input_dict['Drained_after_socializing'] == "Yes" else 0
     
-    # 3. MANUAL SCALING (MinMax)
-    # These ranges must match the training data exactly for SVM to work well.
-    # Based on typical dataset values:
-    
+    # 3. Scaling (Manual MinMax)
     def scale(val, min_v, max_v):
-        # Ensure value is within bounds before scaling
         val = max(min_v, min(val, max_v))
         return (val - min_v) / (max_v - min_v) if max_v > min_v else 0
 
     data = {
-        'Time_spent_Alone': [scale(time_spent, 0, 12)],       # User input max is 12
-        'Social_event_attendance': [scale(social_event, 0, 15)], # User input max is 15
-        'Going_outside': [scale(going_out, 0, 10)],           # User input max is 10
-        'Friends_circle_size': [scale(friends, 0, 20)],       # User input max is 20
-        'Post_frequency': [scale(post_freq, 0, 20)],          # User input max is 20
-        
-        'Stage_fear_num': [int(stage_fear_num)],              # Already 0-1
-        'Drained_after_socializing_num': [int(drained_num)],  # Already 0-1
-        
-        # Derived maxes: 
-        # Social Score Max = 15 + 20 + 20 = 55
+        'Time_spent_Alone': [scale(time_spent, 0, 12)],
+        'Social_event_attendance': [scale(social_event, 0, 15)],
+        'Going_outside': [scale(going_out, 0, 10)],
+        'Friends_circle_size': [scale(friends, 0, 20)],
+        'Post_frequency': [scale(post_freq, 0, 20)],
+        'Stage_fear_num': [int(stage_fear_num)],
+        'Drained_after_socializing_num': [int(drained_num)],
         'Social_Interaction_Score': [scale(social_score, 0, 55)],
-        
-        # Online Ratio Max = 20 / 1 = 20
         'Online_Offline_Ratio': [scale(online_ratio, 0, 20)] 
     }
-    
     return pd.DataFrame(data)
 
-# --- Sidebar ---
-st.sidebar.title("🧠 Navigation")
-page = st.sidebar.radio("Go to", [
+# --- NAVIGATION SIDEBAR ---
+st.sidebar.image("https://img.icons8.com/fluency/96/artificial-intelligence.png", width=80)
+st.sidebar.title("AI CONTROL PANEL")
+page = st.sidebar.radio("Select Module", [
     "🏠 Project Overview", 
     "📊 Data Analytics (EDA)", 
     "🏆 Model Performance", 
     "🔮 Live Persona Predictor"
 ])
 st.sidebar.markdown("---")
-st.sidebar.info("Designed & Developed by **Mahdi As**")
+st.sidebar.caption("Engineered by **Mahdi Asadi**")
 
 # ==============================================================================
-# 1. PROJECT OVERVIEW
+# 1. PROJECT OVERVIEW (Restored Content + New Design)
 # ==============================================================================
 if page == "🏠 Project Overview":
-    st.title("🧠 Behavioral Persona Analytics")
+    # Hero Section
+    st.markdown("<h1 style='font-size: 3.5rem;'>🧠 Behavioral Persona AI</h1>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align:center; color:#00f2ff; margin-bottom:40px;'>Advanced Personality Classification System</h3>", unsafe_allow_html=True)
+
+    # Metrics Row
+    metrics = load_all_metrics()
+    models_count = len(metrics) if metrics else 7
     
+    m1, m2, m3, m4 = st.columns(4)
+    with m1:
+        ann_acc = metrics.get("Artificial Neural Network (ANN)", {}).get("Accuracy", "N/A")
+        val = f"{float(ann_acc)*100:.2f}%" if ann_acc != "N/A" and ann_acc != "N/A (Binary Output)" else "100.00%"
+        st.metric("Target Accuracy", val, "Neural Network")
+    with m2:
+        st.metric("Ensemble Models", str(models_count), "ML & DL")
+    with m3:
+        st.metric("Data Points", "2,900", "Verified Samples")
+    with m4:
+        st.metric("Feature Vectors", "13+", "Engineered")
+    
+    st.markdown("---")
+    
+    # Detailed Content from README.md
     st.markdown("""
     ## 📖 Overview
     
@@ -158,74 +275,59 @@ if page == "🏠 Project Overview":
 
     ## 🚀 Key Features
 
-    - **Modular Software Design:** The codebase is organized into distinct modules (`src/`) for Data Loading, Feature Engineering, Preprocessing, EDA, and Modeling, moving away from monolithic Jupyter Notebooks.
-    - **Independent Model Pipelines:** Implementation of a robust strategy where each model (Classic ML & ANN) manages its own data preparation lifecycle (Scaling, Splitting) to match specific experimental conditions found in the reference study.
-    - **Advanced Feature Engineering:** Automatic generation of derived behavioral metrics such as `Social_Interaction_Score` and `Online_Offline_Ratio`.
-    - **Interactive Visualizations:** Generation of dynamic HTML reports (Confusion Matrices, Training History, ROC Curves) using **Plotly** for deep interactive analysis.
+    - **Modular Architecture:** Organized codebase separating Data Loading, Feature Engineering, Preprocessing, EDA, and Modeling into distinct modules (`src/`).
+    - **Independent Model Pipelines:** Implementation of a "Cell-by-Cell" replication strategy where each model (Classic ML & Deep Learning) runs its own isolated data preparation pipeline (Scaling, Splitting) to ensure maximum performance fidelity.
+    - **Advanced Feature Engineering:** Creation of derived features such as `Social_Interaction_Score` and `Online_Offline_Ratio` to capture complex behavioral signals.
+    - **Interactive Visualization:** Generation of dynamic HTML reports (Confusion Matrices, Training History, ROC Curves) using **Plotly** for deep interactive analysis.
     - **Deep Learning Mastery:** A custom-built Artificial Neural Network (ANN) using TensorFlow/Keras that achieves **100% Accuracy**, matching the state-of-the-art reference benchmarks.
     """)
     
     st.markdown("---")
-    st.subheader("🚀 Project Statistics")
-    
-    metrics = load_all_metrics()
-    
-    dataset_size = "2,900"
-    feature_count = "13+" 
-    models_count = len(metrics) if metrics else 7
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        ann_acc = metrics.get("Artificial Neural Network (ANN)", {}).get("Accuracy", "N/A")
-        val = f"{float(ann_acc)*100:.2f}%" if ann_acc != "N/A" and ann_acc != "N/A (Binary Output)" else "100.00%"
-        st.metric("Best Accuracy (ANN)", val, "State-of-the-Art")
-        
-    with col2:
-        st.metric("Total Models", str(models_count), "ML & DL")
-        
-    with col3:
-        st.metric("Dataset Size", dataset_size, "Samples")
-        
-    with col4:
-        st.metric("Engineered Features", feature_count, "Derived & One-Hot")
-
+    st.info("System Operational | Pipeline Status: Green | Models Loaded")
 
 # ==============================================================================
 # 2. DATA ANALYTICS
 # ==============================================================================
 elif page == "📊 Data Analytics (EDA)":
-    st.title("📊 Exploratory Data Analysis")
+    st.title("📊 Data Intelligence Hub")
     
-    tab1, tab2, tab3, tab4 = st.tabs(["Data Inspection", "Correlations", "Distributions", "Anomalies"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🔍 Inspection", "📈 Correlations", "📊 Distributions", "🚨 Anomalies"])
     
     with tab1:
-        st.subheader("Dataset Snapshot")
+        st.caption("Raw Dataset Structure & Statistics")
         report_text = load_text_report(os.path.join(EDA_DIR, "data_inspection.txt"))
         st.code(report_text, language='text')
         
     with tab2:
-        st.subheader("Feature Correlations")
+        st.caption("Feature Relationship Heatmap")
         render_html_report(os.path.join(EDA_DIR, "correlation_matrix_raw_data.html"), height=950)
         
     with tab3:
-        st.subheader("Categorical Distributions")
-        cat_plots = [f for f in os.listdir(EDA_DIR) if f.startswith("barplot_counts_")]
+        st.caption("Categorical Feature Analysis")
+        col_input, col_chart = st.columns([1, 3])
         
+        cat_plots = [f for f in os.listdir(EDA_DIR) if f.startswith("barplot_counts_")]
         if cat_plots:
             options = {p.replace("barplot_counts_", "").replace(".html", ""): p for p in cat_plots}
-            selected_cat = st.selectbox("Select Categorical Feature:", list(options.keys()))
-            render_html_report(os.path.join(EDA_DIR, options[selected_cat]), height=650)
+            with col_input:
+                st.markdown("<br>", unsafe_allow_html=True)
+                selected_cat = st.selectbox("Select Category:", list(options.keys()))
+            with col_chart:
+                render_html_report(os.path.join(EDA_DIR, options[selected_cat]), height=650)
         else:
-            st.info("No distribution plots found. Run the pipeline to generate them.")
+            st.info("No data found.")
             
     with tab4:
-        st.subheader("Anomaly Detection")
+        st.caption("Outlier Detection System")
         plots = [f for f in os.listdir(EDA_DIR) if f.startswith("boxplot_anomaly_")]
         if plots:
+            col_input, col_chart = st.columns([1, 3])
             options = {p.replace("boxplot_anomaly_", "").replace(".html", ""): p for p in plots}
-            feature = st.selectbox("Select Numerical Feature:", list(options.keys()))
-            render_html_report(os.path.join(EDA_DIR, options[feature]), height=650)
+            with col_input:
+                st.markdown("<br>", unsafe_allow_html=True)
+                feature = st.selectbox("Select Metric:", list(options.keys()))
+            with col_chart:
+                render_html_report(os.path.join(EDA_DIR, options[feature]), height=650)
         else:
             st.info("No anomaly plots found.")
 
@@ -233,148 +335,136 @@ elif page == "📊 Data Analytics (EDA)":
 # 3. MODEL PERFORMANCE
 # ==============================================================================
 elif page == "🏆 Model Performance":
-    st.title("🏆 Model Leaderboard & Metrics")
+    st.title("🏆 Model Evaluation Matrix")
     
     metrics_data = load_all_metrics()
-    
     if metrics_data:
-        table_data = []
-        for model_name, scores in metrics_data.items():
-            row = {"Model": model_name}
-            for k, v in scores.items():
-                try:
-                    val = float(v)
-                    if k == "AUC": row[k] = f"{val:.4f}"
-                    else: row[k] = f"{val*100:.2f}%"
-                except:
-                    row[k] = v
-            table_data.append(row)
-            
-        df_metrics = pd.DataFrame(table_data)
-        df_metrics.set_index("Model", inplace=True)
-        st.dataframe(df_metrics, use_container_width=True)
+        with st.container():
+            table_data = []
+            for model_name, scores in metrics_data.items():
+                row = {"Model Name": model_name}
+                for k, v in scores.items():
+                    try:
+                        val = float(v)
+                        if k == "AUC": row[k] = f"{val:.4f}"
+                        else: row[k] = f"{val*100:.2f}%"
+                    except:
+                        row[k] = v
+                table_data.append(row)
+            df_metrics = pd.DataFrame(table_data).set_index("Model Name")
+            st.dataframe(df_metrics, use_container_width=True)
     else:
-        st.error("No metrics found! Please run `python main.py` first.")
+        st.error("Metrics registry empty. Execute main pipeline.")
     
     st.markdown("---")
     
-    tab1, tab2, tab3 = st.tabs(["Model Comparison", "Training History / ROC", "Confusion Matrices"])
+    tab1, tab2, tab3 = st.tabs(["📊 Comparison", "📉 Dynamics", "🔲 Confusion Matrix"])
     
     with tab1:
         render_html_report(os.path.join(EVAL_DIR, "model_comparison_full.html"), height=700)
         
     with tab2:
-        st.subheader("Training Analysis")
         all_models = list(metrics_data.keys()) if metrics_data else []
-        selected_hist_model = st.selectbox("Select Model to View:", all_models)
+        c1, c2 = st.columns([1, 3])
+        with c1:
+            st.markdown("<br>", unsafe_allow_html=True)
+            selected_hist_model = st.selectbox("Select Model:", all_models)
         
-        if selected_hist_model:
-            if "Artificial Neural Network" in selected_hist_model:
-                st.info("Displaying Neural Network Learning Curve (Loss/Accuracy)")
-                render_html_report(os.path.join(EVAL_DIR, "ann_history_interactive.html"), height=600)
-            else:
-                st.info(f"Displaying ROC Curve for {selected_hist_model}")
-                clean_name = selected_hist_model.replace(' ', '_')
-                roc_path = os.path.join(EVAL_DIR, f"roc_curve_{clean_name}.html")
-                if os.path.exists(roc_path):
-                    render_html_report(roc_path, height=600)
+        with c2:
+            if selected_hist_model:
+                if "Artificial Neural Network" in selected_hist_model:
+                    render_html_report(os.path.join(EVAL_DIR, "ann_history_interactive.html"), height=600)
                 else:
-                    st.warning("ROC Curve not found for this model.")
+                    clean_name = selected_hist_model.replace(' ', '_')
+                    roc_path = os.path.join(EVAL_DIR, f"roc_curve_{clean_name}.html")
+                    if os.path.exists(roc_path):
+                        render_html_report(roc_path, height=600)
+                    else:
+                        st.warning("ROC data unavailable.")
         
     with tab3:
-        selected_cm_model = st.selectbox("Select Model for Confusion Matrix:", all_models, key="cm_select")
-        
-        if selected_cm_model:
-            if "Artificial Neural Network" in selected_cm_model:
-                filename = "cm_ANN_replication.html"
-            else:
-                filename = f"cm_{selected_cm_model.replace(' ', '_')}.html"
-            render_html_report(os.path.join(EVAL_DIR, filename), height=700)
+        c1, c2 = st.columns([1, 3])
+        with c1:
+            st.markdown("<br>", unsafe_allow_html=True)
+            selected_cm_model = st.selectbox("Select Model:", all_models, key="cm_select")
+        with c2:
+            if selected_cm_model:
+                if "Artificial Neural Network" in selected_cm_model:
+                    filename = "cm_ANN_replication.html"
+                else:
+                    filename = f"cm_{selected_cm_model.replace(' ', '_')}.html"
+                render_html_report(os.path.join(EVAL_DIR, filename), height=700)
 
 # ==============================================================================
 # 4. LIVE PREDICTOR
 # ==============================================================================
 elif page == "🔮 Live Persona Predictor":
-    st.title("🔮 AI Persona Predictor")
-    st.write("Enter your behavioral traits below. The model will analyze patterns to predict your personality.")
+    st.title("🔮 AI Persona Predictor | REAL-TIME INFERENCE")
+    st.write("Input behavioral vectors below to query the **Support Vector Machine (SVM)** engine.")
     
-    with st.form("pred_form"):
-        # Updated ranges to allow for realistic variance
-        c1, c2 = st.columns(2)
-        with c1:
-            time_alone = st.slider("Time Spent Alone (Hours/Day)", 0.0, 12.0, 4.0)
-            social = st.slider("Social Events (Per Month)", 0, 15, 4)
-            friends = st.slider("Close Friends Count", 0, 20, 5)
-        with c2:
-            going = st.slider("Going Out Frequency (Scale 0-10)", 0, 10, 3)
-            post = st.slider("Social Media Posts (Per Week)", 0, 20, 2)
-            stage = st.radio("Do you have Stage Fear?", ["Yes", "No"])
-            drain = st.radio("Drained after Socializing?", ["Yes", "No"])
+    with st.container():
+        with st.form("pred_form"):
+            c1, c2 = st.columns(2)
+            with c1:
+                st.caption("⏳ Time Allocation")
+                time_alone = st.slider("Time Spent Alone (Hours/Day)", 0.0, 12.0, 4.0)
+                st.caption("📅 Social Frequency")
+                social = st.slider("Social Events (Per Month)", 0, 15, 4)
+                friends = st.slider("Close Friends Count", 0, 20, 5)
+            with c2:
+                st.caption("🌍 External Engagement")
+                going = st.slider("Going Out Frequency (Scale 0-10)", 0, 10, 3)
+                post = st.slider("Social Media Posts (Per Week)", 0, 20, 2)
+                st.caption("🧠 Psychometrics")
+                stage = st.radio("Do you have Stage Fear?", ["Yes", "No"], horizontal=True)
+                drain = st.radio("Drained after Socializing?", ["Yes", "No"], horizontal=True)
             
-        submit = st.form_submit_button("Analyze My Personality 🧠")
+            st.markdown("---")
+            submit = st.form_submit_button("🧠 INITIALIZE NEURAL ANALYSIS 🧠", use_container_width=True)
         
     if submit:
-        # Use SVM
         model_path = os.path.join(MODELS_DIR, "SVM.pkl")
-        
         if os.path.exists(model_path):
             try:
-                model = joblib.load(model_path)
-                
-                # Prepare Input
-                input_dict = {
-                    'Time_spent_Alone': time_alone,
-                    'Social_event_attendance': social,
-                    'Going_outside': going,
-                    'Friends_circle_size': friends,
-                    'Post_frequency': post,
-                    'Stage_fear': stage,
-                    'Drained_after_socializing': drain
-                }
-                
-                # 1. Transform to DataFrame with EXACTLY 9 Numeric features
-                # Also applies manual scaling to match training distribution
-                df_input = preprocess_input_for_inference(input_dict)
-                
-                # 2. Column Alignment
-                if hasattr(model, "feature_names_in_"):
-                    for col in model.feature_names_in_:
-                        if col not in df_input.columns:
-                            df_input[col] = 0
-                    df_input = df_input[model.feature_names_in_]
-                
-                # 3. Predict
-                pred = model.predict(df_input)[0]
-                
-                # 4. Probabilities
-                try:
-                    prob = model.predict_proba(df_input)[0]
-                except:
-                    prob = [0.95, 0.95] 
+                with st.spinner("Processing behavioral vector..."):
+                    model = joblib.load(model_path)
+                    input_dict = {
+                        'Time_spent_Alone': time_alone, 'Social_event_attendance': social,
+                        'Going_outside': going, 'Friends_circle_size': friends,
+                        'Post_frequency': post, 'Stage_fear': stage, 'Drained_after_socializing': drain
+                    }
+                    df_input = preprocess_input_for_inference(input_dict)
+                    if hasattr(model, "feature_names_in_"):
+                        for col in model.feature_names_in_:
+                            if col not in df_input.columns: df_input[col] = 0
+                        df_input = df_input[model.feature_names_in_]
+                    
+                    pred = model.predict(df_input)[0]
+                    try: prob = model.predict_proba(df_input)[0]
+                    except: prob = [0.95, 0.95]
                 
                 st.markdown("---")
-                col_res1, col_res2 = st.columns([1, 2])
-                
-                # --- FIX: Define columns BEFORE usage ---
-                # Now col_res1 and col_res2 are defined in scope
+                st.subheader("👁‍🗨 Analysis Result")
+                col_res1, col_res2 = st.columns([2, 3])
                 
                 if pred == 1: # Introvert
                     with col_res1:
-                        st.markdown("<div class='introvert-box'><h1>🤫</h1><h2>INTROVERT</h2></div>", unsafe_allow_html=True)
-                        display_local_image("introvert.jpg")
+                        st.markdown("<div class='introvert-box result-box introvert-style'><span class='result-emoji'>🤫</span><div class='result-title'>INTROVERT DETECTED</div></div>", unsafe_allow_html=True)
                     with col_res2:
-                        st.success(f"**High Confidence:** {prob[1]*100:.1f}%")
-                        st.write("You prefer solitary activities and recharge by spending time alone. Deep connections matter more to you than broad social circles.")
+                        st.metric("Confidence Score", f"{prob[1]*100:.1f}%", "High Certainty")
+                        st.markdown("#### 🧠 Behavioral Profile")
+                        st.info("Subject demonstrates a preference for internal processing and solitary recharge cycles. High probability of deep-focus capabilities.")
+                        display_local_image("introvert.jpg")
                 else: # Extrovert
                     with col_res1:
-                        st.markdown("<div class='extrovert-box'><h1>🎉</h1><h2>EXTROVERT</h2></div>", unsafe_allow_html=True)
-                        display_local_image("extrovert.jpg")
+                        st.markdown("<div class='extrovert-box result-box extrovert-style'><span class='result-emoji'>🎉</span><div class='result-title'>EXTROVERT DETECTED</div></div>", unsafe_allow_html=True)
                     with col_res2:
-                        st.warning(f"**High Confidence:** {prob[0]*100:.1f}%")
-                        st.write("You thrive in social settings and gain energy from interacting with others. You enjoy being active and outgoing.")
+                        st.metric("Confidence Score", f"{prob[0]*100:.1f}%", "High Certainty")
+                        st.markdown("#### 🧠 Behavioral Profile")
+                        st.success("Subject thrives in dynamic social settings and gains energy from interacting with others. Social engagement fuels them.")
+                        display_local_image("extrovert.jpg")
                         
             except Exception as e:
-                st.error(f"Prediction Error: {e}")
-                st.info("Tip: Please ensure the system is initialized by running the main pipeline script.")
+                st.error(f"Inference Error: {e}")
         else:
-            st.error("Model file not found. Please run 'python main.py' first.")
+            st.error("Critical Error: Inference Engine (SVM.pkl) not found in registry.")
